@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"import json; data=json.load\\(open\\(''countries.json''\\)\\); print\\(f''Total countries: {len\\(data\\)}''\\); continents={};:*)",
+      "mcp__Claude_Preview__preview_start"
+    ]
+  }
+}
