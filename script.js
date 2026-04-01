@@ -351,14 +351,19 @@
     const inContinent = state.activeContinent !== 'All'
       ? state.numericToCountry.get(numeric)?.continent === state.activeContinent
       : true;
+    const accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    const guessed = getComputedStyle(document.documentElement).getPropertyValue('--guessed').trim();
     paths.forEach(path => {
       path.classList.remove('unrecognized');
       path.classList.add('guessed');
       if (flash) {
-        path.classList.add('just-guessed');
-        path.addEventListener('animationend', () => {
-          path.classList.remove('just-guessed');
-        }, { once: true });
+        // Use D3 transition for flash — CSS keyframe animations on SVG fills are unreliable
+        d3.select(path)
+          .style('fill', '#ffffff')
+          .transition().duration(150)
+          .style('fill', accent)
+          .transition().duration(450)
+          .style('fill', null); // release to CSS class fill
       }
       if (state.activeContinent !== 'All' && !inContinent) {
         path.classList.add('dimmed');

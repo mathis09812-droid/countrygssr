@@ -452,15 +452,6 @@ body {
   pointer-events: none;
 }
 
-/* Flash on guess */
-@keyframes countryFlash {
-  0%   { fill: #fff; }
-  30%  { fill: var(--accent); }
-  100% { fill: var(--guessed); }
-}
-.country-path.just-guessed {
-  animation: countryFlash 0.6s ease-out;
-}
 
 /* ── TOOLTIP ──────────────────────────────────────── */
 .tooltip {
