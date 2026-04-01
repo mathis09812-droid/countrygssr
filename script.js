@@ -345,7 +345,7 @@
     if (state.guessedSet.size === TOTAL) handleWin();
   }
 
-  function highlightCountry(numeric) {
+  function highlightCountry(numeric, flash = true) {
     const paths = document.querySelectorAll(`[data-id="${numeric}"]`);
     if (!paths.length) return;
     const inContinent = state.activeContinent !== 'All'
@@ -353,12 +353,13 @@
       : true;
     paths.forEach(path => {
       path.classList.remove('unrecognized');
-      path.classList.add('guessed', 'just-guessed');
-      path.addEventListener('animationend', () => {
-        path.classList.remove('just-guessed');
-        // Ensure fill is applied after animation (belt-and-suspenders fix)
-        path.style.fill = '';
-      }, { once: true });
+      path.classList.add('guessed');
+      if (flash) {
+        path.classList.add('just-guessed');
+        path.addEventListener('animationend', () => {
+          path.classList.remove('just-guessed');
+        }, { once: true });
+      }
       if (state.activeContinent !== 'All' && !inContinent) {
         path.classList.add('dimmed');
       }
@@ -768,7 +769,7 @@
         const country = state.numericToCountry.get(numeric);
         if (country && !state.guessedSet.has(numeric)) {
           state.guessedSet.add(numeric);
-          highlightCountry(numeric);
+          highlightCountry(numeric, false); // no flash on restore
         }
       });
       updateScore();
