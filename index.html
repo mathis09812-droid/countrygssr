@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
 
@@ -151,9 +151,19 @@
           </div>
         </div>
 
+        <div class="preview-stat preview-stat-wide">
+          <span class="preview-stat-label" data-i18n="currency">Currency</span>
+          <span id="preview-currency" class="preview-stat-value"></span>
+        </div>
+
         <div class="preview-description-section">
           <h3 class="preview-section-title" data-i18n="about">About</h3>
           <p id="preview-description" class="preview-description"></p>
+        </div>
+
+        <div class="preview-description-section">
+          <h3 class="preview-section-title" data-i18n="economic">Economic Overview</h3>
+          <p id="preview-economic" class="preview-description"></p>
         </div>
 
         <!-- Mini-map with capital dot -->
@@ -204,7 +214,7 @@
   <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
   <script src="https://unpkg.com/topojson-client@3"></script>
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 
 </body>
 </html>

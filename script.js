@@ -12,7 +12,7 @@
     lang: 'en',
     theme: 'sunset',
     activeContinent: 'All',
-    timerEnabled: false,
+    timerEnabled: true,
     timerRunning: false,
     timerSecondsLeft: TIMER_START,
     timerInterval: null,
@@ -45,6 +45,8 @@
       results_giveup: 'You gave up',
       missed_countries: 'Countries you missed',
       time_left: 'Time remaining',
+      currency: 'Currency',
+      economic: 'Economic Overview',
     },
     fr: {
       placeholder: 'Tapez un nom de pays...',
@@ -66,6 +68,8 @@
       results_giveup: 'Vous avez abandonné',
       missed_countries: 'Pays manqués',
       time_left: 'Temps restant',
+      currency: 'Monnaie',
+      economic: 'Aperçu économique',
     },
   };
 
@@ -80,6 +84,11 @@
   function bannerUrl(alpha2) {
     // Use flagcdn large flag as banner (reliable, always works)
     return `https://flagcdn.com/w1280/${alpha2.toLowerCase()}.png`;
+  }
+
+  // Strip diacritics for accent-insensitive matching (é→e, ï→i, etc.)
+  function normalize(str) {
+    return str.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
   // ── DOM ─────────────────────────────────────────────────────────────────────
@@ -125,6 +134,8 @@
     previewPop:     $('preview-population'),
     previewGdp:     $('preview-gdp'),
     previewDesc:    $('preview-description'),
+    previewCurrency:$('preview-currency'),
+    previewEconomic:$('preview-economic'),
     previewMinimap: $('preview-minimap'),
     // Results
     resultsModal:   $('results-modal'),
@@ -166,13 +177,13 @@
   function buildNameIndex() {
     state.nameToCountry.clear();
     for (const c of state.countries) {
-      // Main name
-      const name = (c.name[state.lang] || c.name.en).toLowerCase();
-      state.nameToCountry.set(name, c);
-      // Aliases
+      const name = c.name[state.lang] || c.name.en;
+      state.nameToCountry.set(name.toLowerCase(), c);
+      state.nameToCountry.set(normalize(name), c);        // accent-insensitive
       const aliases = c.aliases[state.lang] || c.aliases.en || [];
       for (const a of aliases) {
         state.nameToCountry.set(a.toLowerCase(), c);
+        state.nameToCountry.set(normalize(a), c);         // accent-insensitive
       }
     }
   }
@@ -182,13 +193,17 @@
     const lang = state.lang;
     const entries = state.countries.map(c => ({
       _country: c,
-      name: c.name[lang] || c.name.en,
-      aliases: (c.aliases[lang] || c.aliases.en || []).join(' '),
+      name:        c.name[lang] || c.name.en,
+      nameNorm:    normalize(c.name[lang] || c.name.en),
+      aliases:     (c.aliases[lang] || c.aliases.en || []).join(' '),
+      aliasesNorm: (c.aliases[lang] || c.aliases.en || []).map(normalize).join(' '),
     }));
     state.fuse = new Fuse(entries, {
       keys: [
-        { name: 'name',    weight: 0.7 },
-        { name: 'aliases', weight: 0.3 },
+        { name: 'name',        weight: 0.4 },
+        { name: 'nameNorm',    weight: 0.4 },
+        { name: 'aliases',     weight: 0.1 },
+        { name: 'aliasesNorm', weight: 0.1 },
       ],
       threshold: 0.38,
       minMatchCharLength: 2,
@@ -278,8 +293,8 @@
     const query = dom.input.value.trim().toLowerCase();
     if (query.length < 2) return;
 
-    // Check exact match (auto-validate)
-    const exactMatch = state.nameToCountry.get(query);
+    // Exact match, then accent-insensitive fallback
+    const exactMatch = state.nameToCountry.get(query) || state.nameToCountry.get(normalize(query));
     if (exactMatch) {
       if (state.guessedSet.has(exactMatch.numeric)) {
         showToast(t('already'), 'error');
@@ -297,8 +312,8 @@
       const query = dom.input.value.trim().toLowerCase();
       if (query.length < 2) return;
 
-      // Try exact match first
-      const exactMatch = state.nameToCountry.get(query);
+      // Exact match, then accent-insensitive fallback
+      const exactMatch = state.nameToCountry.get(query) || state.nameToCountry.get(normalize(query));
       if (exactMatch) {
         if (state.guessedSet.has(exactMatch.numeric)) {
           showToast(t('already'), 'error');
@@ -308,8 +323,8 @@
         return;
       }
 
-      // Try fuzzy match (top result if very close)
-      const results = state.fuse.search(query, { limit: 1 });
+      // Fuzzy match — normalize the query so accented chars work too
+      const results = state.fuse.search(normalize(query), { limit: 1 });
       if (results.length > 0 && results[0].score < 0.2) {
         const country = results[0].item._country;
         if (state.guessedSet.has(country.numeric)) {
@@ -481,6 +496,14 @@
     dom.previewPop.textContent = country.population.toLocaleString();
     dom.previewGdp.textContent = country.gdp;
     dom.previewDesc.textContent = country.description[lang] || country.description.en;
+    if (dom.previewCurrency) {
+      dom.previewCurrency.textContent = country.currency
+        ? `${country.currency.symbol} ${country.currency.name} (1 ${country.currency.code} = ${country.currency.rateToEur}€)`
+        : '—';
+    }
+    if (dom.previewEconomic) {
+      dom.previewEconomic.textContent = (country.economic && (country.economic[lang] || country.economic.en)) || '';
+    }
 
     // Update i18n labels
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -824,6 +847,10 @@
   initContinentTabs();
   loadProgress();
   updateUI();
+  // Timer is on by default
+  dom.timerToggle.classList.add('active');
+  dom.timerDisplay.classList.remove('hidden');
+  dom.timerValue.textContent = formatTime(TIMER_START);
   dom.input.focus();
 
 })().catch(err => {

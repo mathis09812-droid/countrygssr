@@ -683,6 +683,27 @@ body {
   color: var(--text-primary);
 }
 
+/* Wide stat row (currency) */
+.preview-stat-wide {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 16px;
+}
+.preview-stat-wide .preview-stat-label {
+  display: inline;
+  margin-bottom: 0;
+}
+.preview-stat-wide .preview-stat-value {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 /* Description */
 .preview-section-title {
   font-size: 0.7rem;
